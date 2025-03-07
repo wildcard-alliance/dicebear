@@ -1,7 +1,38 @@
-# Cache and log files
-lerna-debug.log
-.DS_Store
-yarn-error.log
+# Ignore circular symlinks
+packages/@dicebear/*/adventurer
+packages/@dicebear/*/adventurer-neutral
+packages/@dicebear/*/avataaars
+packages/@dicebear/*/avataaars-neutral
+packages/@dicebear/*/big-ears
+packages/@dicebear/*/big-ears-neutral
+packages/@dicebear/*/big-smile
+packages/@dicebear/*/bottts
+packages/@dicebear/*/bottts-neutral
+packages/@dicebear/*/collection
+packages/@dicebear/*/core
+packages/@dicebear/*/croodles
+packages/@dicebear/*/croodles-neutral
+packages/@dicebear/*/dylan
+packages/@dicebear/*/fun-emoji
+packages/@dicebear/*/glass
+packages/@dicebear/*/icons
+packages/@dicebear/*/identicon
+packages/@dicebear/*/initials
+packages/@dicebear/*/lorelei
+packages/@dicebear/*/lorelei-neutral
+packages/@dicebear/*/micah
+packages/@dicebear/*/miniavs
+packages/@dicebear/*/notionists
+packages/@dicebear/*/notionists-neutral
+packages/@dicebear/*/open-peeps
+packages/@dicebear/*/personas
+packages/@dicebear/*/pixel-art
+packages/@dicebear/*/pixel-art-neutral
+packages/@dicebear/*/rings
+packages/@dicebear/*/shapes
+packages/@dicebear/*/thumbs
 
-# Dependencies
+# Development files
+apps/editor/dev.pid
+apps/editor/server.pid
 node_modules
