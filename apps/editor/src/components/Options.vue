@@ -5,8 +5,15 @@ import { computed } from 'vue';
 import Avatar from './Avatar.vue';
 import Footer from './Footer.vue';
 import { useDebounceFn } from '@vueuse/core';
+import { useI18n } from 'vue-i18n';
+import TabView from 'primevue/tabview';
+import TabPanel from 'primevue/tabpanel';
+import ColorPicker from 'primevue/colorpicker';
+
+// No props needed anymore
 
 const store = useMainStore();
+const { t } = useI18n();
 
 const tabs = computed(() => {
   const result: Record<
@@ -43,7 +50,7 @@ const tabs = computed(() => {
 });
 
 const selectedTabOptionName = computed(() => {
-  return Object.keys(tabs.value)[parseInt(store.selectedTab)];
+  return Object.keys(tabs.value)[typeof store.selectedTab === 'number' ? store.selectedTab : 0];
 });
 
 const customColorDefaultValue = computed({
@@ -74,51 +81,126 @@ const changeOptionsWithOverride = useDebounceFn(
 
 <template>
   <div class="options">
-    <Tabs v-model:value="store.selectedTab">
-      <TabPanels>
-        <TabPanel
-          v-for="(key, i) in Object.keys(tabs)"
-          :key="i"
-          :value="i.toString()"
+    <div class="options-tabs-container">
+      <TabView v-model:activeIndex="store.selectedTab" :activeIndex="0">
+        <TabPanel 
+          v-for="(key, i) in Object.keys(tabs)" 
+          :key="i" 
+          :header="t(key)"
         >
-          <div class="options-slide">
-            <div class="options-grid">
-              <button
-                v-for="(combination, ci) in tabs[key]"
-                :key="ci"
-                :class="{
-                  'options-avatar': true,
-                  'options-avatar-active': combination.active,
-                }"
-                @click="combination.onClick"
-              >
-                <Avatar
-                  :svg="combination.avatar"
-                  class="options-avatar-component"
-                />
-                <label
-                  v-if="combination.onColorInput"
-                  class="options-avatar-wheel"
+          <div class="options-content">
+            <div class="options-slide">
+              <div class="options-grid">
+                <button
+                  v-for="(combination, ci) in tabs[key]"
+                  :key="ci"
+                  :class="{
+                    'options-avatar': true,
+                    'options-avatar-active': combination.active,
+                  }"
+                  @click="combination.onClick"
                 >
-                  <div class="options-avatar-wheel-picker">
-                    <ColorPicker v-model="customColorDefaultValue">
-                    </ColorPicker>
-                  </div>
-                </label>
-              </button>
+                  <Avatar
+                    :svg="combination.avatar"
+                    class="options-avatar-component"
+                  />
+                  <label
+                    v-if="combination.onColorInput"
+                    class="options-avatar-wheel"
+                  >
+                    <div class="options-avatar-wheel-picker">
+                      <ColorPicker v-model="customColorDefaultValue">
+                      </ColorPicker>
+                    </div>
+                  </label>
+                </button>
+              </div>
+              <Footer :tab="key" />
             </div>
-            <Footer :tab="key" />
           </div>
         </TabPanel>
-      </TabPanels>
-    </Tabs>
+      </TabView>
+    </div>
   </div>
 </template>
 
 <style scoped lang="scss">
 .options {
+  background-color: white;
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+
+  &-tabs-container {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: white;
+    border-bottom: 1px solid #e0e0e0;
+    width: 100%;
+  }
+  
+  :deep(.p-tabview) {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+  
+  :deep(.p-tabview-nav) {
+    display: flex;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding: 0 !important;
+    max-width: 100%;
+    
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+  
+  :deep(.p-tabview-panels) {
+    padding: 0 !important;
+    border: none !important;
+    flex: 1;
+    overflow: visible;
+  }
+  
+  :deep(.p-tabview-nav-link) {
+    padding: 12px 20px !important;
+    background: transparent !important;
+    border: none !important;
+    border-bottom: 2px solid transparent !important;
+    border-radius: 0 !important;
+    font-weight: 600 !important;
+    color: #757575 !important;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+    box-shadow: none !important;
+    
+    &:hover:not(:disabled) {
+      color: #424242 !important;
+    }
+    
+    &.p-highlight {
+      color: #4272d7 !important;
+      border-bottom-color: #4272d7 !important;
+    }
+    
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+
+  &-content {
+    height: 100%;
+  }
+
   &-slide {
-    padding: var(--van-padding-md) var(--van-padding-sm);
+    padding: 20px 16px;
     min-height: 100%;
     display: flex;
     flex-direction: column;

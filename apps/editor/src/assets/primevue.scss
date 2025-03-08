@@ -1,0 +1,103 @@
+/* PrimeVue Theme */
+:root {
+  --primary-color: #4272d7;
+  --text-color: #212121;
+  --text-color-secondary: #585858;
+  --surface-ground: #f8f9fa;
+  --surface-section: #ffffff;
+  --surface-card: #ffffff;
+  --surface-overlay: #ffffff;
+  --surface-border: #dfe7ef;
+  --surface-hover: #f6f9fc;
+  --focus-ring: 0 0 0 0.2rem rgba(66, 114, 215, 0.2);
+}
+
+.p-component {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-size: 1rem;
+  color: var(--text-color);
+}
+
+.p-button {
+  background: var(--primary-color);
+  border: 1px solid var(--primary-color);
+  color: #ffffff;
+  border-radius: 6px;
+  padding: 0.5rem 1rem;
+  transition: background-color 0.2s;
+}
+
+.p-button:hover {
+  background: rgba(66, 114, 215, 0.92);
+  border-color: rgba(66, 114, 215, 0.92);
+}
+
+.p-tabview {
+  .p-tabview-nav {
+    border-bottom: 1px solid var(--surface-border);
+    padding: 0;
+    
+    li {
+      margin-right: 0;
+      
+      .p-tabview-nav-link {
+        padding: 12px 20px;
+        border: none;
+        border-bottom: 2px solid transparent;
+        transition: all 0.2s;
+        font-weight: 600;
+        border-radius: 0;
+        background: transparent;
+        color: #757575;
+        box-shadow: none;
+        
+        &:not(.p-disabled):focus {
+          box-shadow: none;
+        }
+        
+        &:hover:not(.p-disabled) {
+          color: #424242;
+          background: transparent;
+          border-color: transparent;
+        }
+      }
+      
+      &.p-highlight .p-tabview-nav-link {
+        background: transparent;
+        border-bottom-color: #4272d7;
+        color: #4272d7;
+      }
+    }
+  }
+  
+  .p-tabview-panels {
+    padding: 0;
+    border: none;
+  }
+}
+
+.p-progressspinner {
+  width: 50px;
+  height: 50px;
+  
+  circle {
+    stroke: var(--primary-color);
+    stroke-width: 4;
+    animation: p-progressspinner-dash 1.5s ease-in-out infinite;
+  }
+}
+
+@keyframes p-progressspinner-dash {
+  0% {
+    stroke-dasharray: 1, 200;
+    stroke-dashoffset: 0;
+  }
+  50% {
+    stroke-dasharray: 89, 200;
+    stroke-dashoffset: -35px;
+  }
+  100% {
+    stroke-dasharray: 89, 200;
+    stroke-dashoffset: -124px;
+  }
+}
