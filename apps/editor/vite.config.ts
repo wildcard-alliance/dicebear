@@ -4,8 +4,6 @@ import { execSync } from 'node:child_process';
 import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
 import VueI18nPlugin from '@intlify/unplugin-vue-i18n/vite';
-import Components from 'unplugin-vue-components/vite';
-import { PrimeVueResolver } from '@primevue/auto-import-resolver';
 
 const commitHash = (
   process.env.GIT_REV ?? execSync('git rev-parse --short HEAD').toString()
@@ -15,9 +13,6 @@ const commitHash = (
 export default defineConfig({
   plugins: [
     vue(),
-    Components({
-      resolvers: [PrimeVueResolver()],
-    }),
     VueI18nPlugin({
       include: './src/messages/*.json',
       strictMessage: false,

@@ -82,7 +82,7 @@ const changeOptionsWithOverride = useDebounceFn(
 <template>
   <div class="options">
     <div class="options-tabs-container">
-      <TabView v-model:activeIndex="store.selectedTab" :activeIndex="0">
+      <TabView v-model="store.selectedTab" :activeIndex="0">
         <TabPanel 
           v-for="(key, i) in Object.keys(tabs)" 
           :key="i" 
@@ -148,50 +148,72 @@ const changeOptionsWithOverride = useDebounceFn(
     height: 100%;
   }
   
-  :deep(.p-tabview-nav) {
-    display: flex;
-    overflow-x: auto;
-    scrollbar-width: none;
-    padding: 0 !important;
-    max-width: 100%;
-    
-    &::-webkit-scrollbar {
-      display: none;
+  :deep(.p-tabview) {
+    .p-tabview-nav {
+      display: flex;
+      overflow-x: auto;
+      scrollbar-width: none;
+      padding: 0 !important;
+      max-width: 100%;
+      border-bottom: 1px solid #e0e0e0;
+      
+      &::-webkit-scrollbar {
+        display: none;
+      }
+      
+      /* Remove separator dots */
+      .p-tabview-ink-bar {
+        display: none !important;
+      }
+      
+      li {
+        margin: 0 !important;
+        
+        &::before, &::after {
+          display: none !important;
+          content: none !important;
+        }
+        
+        .p-tabview-nav-link {
+          padding: 12px 20px !important;
+          background: transparent !important;
+          border: none !important;
+          border-radius: 0 !important;
+          font-weight: 600 !important;
+          color: #757575 !important;
+          cursor: pointer;
+          transition: all 0.2s;
+          white-space: nowrap;
+          box-shadow: none !important;
+          margin: 0 !important;
+          
+          &::before, &::after {
+            display: none !important;
+            content: none !important;
+          }
+          
+          &:hover:not(:disabled) {
+            color: #424242 !important;
+          }
+          
+          &.p-highlight {
+            color: #4272d7 !important;
+            border-bottom: 2px solid #4272d7 !important;
+          }
+          
+          &:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+          }
+        }
+      }
     }
-  }
-  
-  :deep(.p-tabview-panels) {
-    padding: 0 !important;
-    border: none !important;
-    flex: 1;
-    overflow: visible;
-  }
-  
-  :deep(.p-tabview-nav-link) {
-    padding: 12px 20px !important;
-    background: transparent !important;
-    border: none !important;
-    border-bottom: 2px solid transparent !important;
-    border-radius: 0 !important;
-    font-weight: 600 !important;
-    color: #757575 !important;
-    cursor: pointer;
-    transition: all 0.2s;
-    white-space: nowrap;
-    box-shadow: none !important;
     
-    &:hover:not(:disabled) {
-      color: #424242 !important;
-    }
-    
-    &.p-highlight {
-      color: #4272d7 !important;
-      border-bottom-color: #4272d7 !important;
-    }
-    
-    &:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
+    .p-tabview-panels {
+      padding: 0 !important;
+      border: none !important;
+      flex: 1;
+      overflow: visible;
     }
   }
 
