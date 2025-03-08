@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DiceBear Avatar Generator</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #0066cc;
+        }
+        .controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background: #0066cc;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #0055aa;
+        }
+        .avatar-display {
+            margin: 20px 0;
+            text-align: center;
+            min-height: 200px;
+        }
+        .avatar-display img, .avatar-display svg {
+            max-width: 200px;
+            border: 1px solid #eee;
+            border-radius: 10px;
+        }
+        .token-info {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        code {
+            background: #eee;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <h1>DiceBear Avatar Generator</h1>
+    
+    <div class="controls">
+        <div>
+            <div class="form-group">
+                <label for="userId">User ID:</label>
+                <input type="text" id="userId" placeholder="Enter user ID" value="test-user">
+            </div>
+            
+            <div class="form-group">
+                <label for="style">Avatar Style:</label>
+                <select id="style">
+                    <option value="adventurer">Adventurer</option>
+                    <option value="adventurer-neutral">Adventurer Neutral</option>
+                    <option value="avataaars">Avataaars</option>
+                    <option value="avataaars-neutral">Avataaars Neutral</option>
+                    <option value="bottts">Bottts</option>
+                    <option value="initials">Initials</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="format">Format:</label>
+                <select id="format">
+                    <option value="svg">SVG</option>
+                    <option value="png">PNG</option>
+                    <option value="webp">WebP</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="size">Size:</label>
+                <input type="number" id="size" value="200" min="16" max="512">
+            </div>
+            
+            <button id="generateBtn">Generate Avatar</button>
+            <button id="tokenBtn">Generate Token</button>
+            <button id="editBtn" style="background-color: #28a745; margin-left: 10px;">Edit Avatar (Client-Side)</button>
+        </div>
+        
+        <div class="avatar-display" id="avatarDisplay">
+            <p>Avatar will be displayed here</p>
+        </div>
+    </div>
+    
+    <div class="token-info" id="tokenInfo" style="display: none;">
+        <h3>Token Information:</h3>
+        <div id="tokenData"></div>
+    </div>
+    
+    <script>
+        document.getElementById('generateBtn').addEventListener('click', generateAvatar);
+        document.getElementById('tokenBtn').addEventListener('click', generateToken);
+        document.getElementById('editBtn').addEventListener('click', openClientEditor);
+        
+        let currentToken = null;
+        let currentUserId = null;
+        
+        async function generateAvatar() {
+            const userId = document.getElementById('userId').value || 'test-user';
+            const style = document.getElementById('style').value;
+            const format = document.getElementById('format').value;
+            const size = document.getElementById('size').value;
+            
+            currentUserId = userId;
+            
+            try {
+                // First check if the user has saved preferences
+                const responseCheck = await fetch(`/api/avatar/${userId}`);
+                
+                if (responseCheck.ok) {
+                    // We don't care about the response data, just that it succeeded
+                    // Now generate the avatar with the preferences or default
+                    
+                    // Generate without style to use the saved preference
+                    const avatarUrl = `/api/avatar/${userId}?format=${format}&size=${size}&t=${Date.now()}`;
+                    
+                    document.getElementById('avatarDisplay').innerHTML = `
+                        <img src="${avatarUrl}" alt="Avatar for ${userId}" />
+                        <p>User ID: ${userId}</p>
+                        <p>Direct URL: <code>${avatarUrl}</code></p>
+                    `;
+                    
+                    // Also make a request to detect the actual style being used
+                    const detectionUrl = `/api/avatar/${userId}?format=svg`; 
+                    const detectionResponse = await fetch(detectionUrl);
+                    const svgText = await detectionResponse.text();
+                    
+                    // Try to detect the style from the SVG
+                    let detectedStyle = 'bottts'; // Default
+                    
+                    if (svgText.includes('avataaars')) detectedStyle = 'avataaars';
+                    else if (svgText.includes('adventurer')) detectedStyle = 'adventurer';
+                    else if (svgText.includes('initials')) detectedStyle = 'initials';
+                    
+                    // Update the style dropdown to show what's actually being used
+                    document.getElementById('style').value = detectedStyle;
+                }
+                else {
+                    // If there's an error, use the explicit style as requested
+                    const avatarUrl = `/api/avatar/${userId}?style=${style}&format=${format}&size=${size}&t=${Date.now()}`;
+                    
+                    document.getElementById('avatarDisplay').innerHTML = `
+                        <img src="${avatarUrl}" alt="Avatar for ${userId}" />
+                        <p>User ID: ${userId}</p>
+                        <p>Direct URL: <code>${avatarUrl}</code></p>
+                    `;
+                }
+            }
+            catch (error) {
+                console.error('Error generating avatar:', error);
+                // Fallback to the basic approach
+                const avatarUrl = `/api/avatar/${userId}?style=${style}&format=${format}&size=${size}&t=${Date.now()}`;
+                
+                document.getElementById('avatarDisplay').innerHTML = `
+                    <img src="${avatarUrl}" alt="Avatar for ${userId}" />
+                    <p>User ID: ${userId}</p>
+                    <p>Direct URL: <code>${avatarUrl}</code></p>
+                    <p class="error">Error: ${error.message}</p>
+                `;
+            }
+        }
+        
+        async function generateToken() {
+            try {
+                const userId = document.getElementById('userId').value || 'test-user';
+                currentUserId = userId;
+                
+                const response = await fetch('/api/auth/token', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-API-Key': 'development-api-key'
+                    },
+                    body: JSON.stringify({ userId })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to generate token');
+                }
+                
+                const data = await response.json();
+                currentToken = data.token;
+                
+                document.getElementById('tokenInfo').style.display = 'block';
+                document.getElementById('tokenData').innerHTML = `
+                    <p><strong>Token:</strong> <code>${data.token}</code></p>
+                    <p><strong>Editor URL:</strong> <a href="${data.editUrl}" target="_blank">${data.editUrl}</a></p>
+                    <p><strong>Expires:</strong> ${new Date(data.expiresAt).toLocaleString()}</p>
+                `;
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('tokenInfo').style.display = 'block';
+                document.getElementById('tokenData').innerHTML = `
+                    <p>Error: ${error.message}</p>
+                `;
+            }
+        }
+        
+        function openClientEditor() {
+            // Generate token if we don't have one yet
+            if (!currentToken) {
+                generateToken().then(() => {
+                    showClientEditor();
+                });
+            } else {
+                showClientEditor();
+            }
+        }
+        
+        function showClientEditor() {
+            const userId = currentUserId || document.getElementById('userId').value || 'test-user';
+            const style = document.getElementById('style').value;
+            
+            // Create editor dialog
+            const editorDiv = document.createElement('div');
+            editorDiv.id = 'client-editor';
+            editorDiv.style.position = 'fixed';
+            editorDiv.style.top = '0';
+            editorDiv.style.left = '0';
+            editorDiv.style.width = '100%';
+            editorDiv.style.height = '100%';
+            editorDiv.style.backgroundColor = 'rgba(0,0,0,0.8)';
+            editorDiv.style.zIndex = '9999';
+            editorDiv.style.display = 'flex';
+            editorDiv.style.flexDirection = 'column';
+            editorDiv.style.alignItems = 'center';
+            editorDiv.style.justifyContent = 'center';
+            
+            // Create editor content
+            const content = document.createElement('div');
+            content.style.backgroundColor = 'white';
+            content.style.padding = '20px';
+            content.style.borderRadius = '10px';
+            content.style.width = '80%';
+            content.style.maxWidth = '600px';
+            content.style.maxHeight = '80vh';
+            content.style.overflow = 'auto';
+            
+            // Add close button
+            const closeButton = document.createElement('button');
+            closeButton.textContent = 'Close Editor';
+            closeButton.style.backgroundColor = '#dc3545';
+            closeButton.style.color = 'white';
+            closeButton.style.border = 'none';
+            closeButton.style.padding = '8px 15px';
+            closeButton.style.borderRadius = '4px';
+            closeButton.style.marginTop = '20px';
+            closeButton.style.cursor = 'pointer';
+            closeButton.onclick = () => {
+                document.body.removeChild(editorDiv);
+            };
+            
+            // Add editor title
+            const title = document.createElement('h2');
+            title.textContent = `Edit Avatar for ${userId}`;
+            content.appendChild(title);
+            
+            // Add preview
+            const preview = document.createElement('div');
+            preview.style.textAlign = 'center';
+            preview.style.marginBottom = '20px';
+            
+            const previewImg = document.createElement('img');
+            previewImg.src = `/api/avatar/${userId}?style=${style}&format=svg&size=200&t=${Date.now()}`;
+            previewImg.style.width = '200px';
+            previewImg.style.height = '200px';
+            previewImg.style.marginBottom = '10px';
+            
+            preview.appendChild(previewImg);
+            content.appendChild(preview);
+            
+            // Add style selector
+            const styleLabel = document.createElement('label');
+            styleLabel.textContent = 'Avatar Style:';
+            styleLabel.style.display = 'block';
+            styleLabel.style.marginBottom = '5px';
+            styleLabel.style.fontWeight = 'bold';
+            
+            const styleSelect = document.createElement('select');
+            styleSelect.style.width = '100%';
+            styleSelect.style.padding = '8px';
+            styleSelect.style.marginBottom = '15px';
+            styleSelect.style.border = '1px solid #ddd';
+            styleSelect.style.borderRadius = '4px';
+            
+            const styles = ['adventurer', 'adventurer-neutral', 'avataaars', 'avataaars-neutral', 'bottts', 'initials'];
+            styles.forEach(s => {
+                const option = document.createElement('option');
+                option.value = s;
+                option.textContent = s;
+                if (s === style) {
+                    option.selected = true;
+                }
+                styleSelect.appendChild(option);
+            });
+            
+            styleSelect.onchange = () => {
+                previewImg.src = `/api/avatar/${userId}?style=${styleSelect.value}&format=svg&size=200&t=${Date.now()}`;
+            };
+            
+            content.appendChild(styleLabel);
+            content.appendChild(styleSelect);
+            
+            // Add save button
+            const saveButton = document.createElement('button');
+            saveButton.textContent = 'Save Changes';
+            saveButton.style.backgroundColor = '#28a745';
+            saveButton.style.color = 'white';
+            saveButton.style.border = 'none';
+            saveButton.style.padding = '10px 15px';
+            saveButton.style.borderRadius = '4px';
+            saveButton.style.width = '100%';
+            saveButton.style.marginTop = '20px';
+            saveButton.style.cursor = 'pointer';
+            
+            saveButton.onclick = async () => {
+                try {
+                    const response = await fetch(`/api/editor/${userId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            token: currentToken,
+                            style: styleSelect.value,
+                            options: {}
+                        })
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error('Failed to save changes');
+                    }
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        alert('Changes saved successfully!');
+                        document.body.removeChild(editorDiv);
+                        
+                        // Update the main avatar display
+                        document.getElementById('style').value = styleSelect.value;
+                        generateAvatar();
+                    } else {
+                        throw new Error(result.message || 'Unknown error');
+                    }
+                } catch (error) {
+                    alert(`Error: ${error.message}`);
+                }
+            };
+            
+            content.appendChild(saveButton);
+            content.appendChild(closeButton);
+            
+            editorDiv.appendChild(content);
+            document.body.appendChild(editorDiv);
+        }
+        
+        // Generate an avatar on page load
+        window.addEventListener('load', generateAvatar);
+    </script>
+</body>
+</html>

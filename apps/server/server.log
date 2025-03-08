@@ -1,0 +1,11 @@
+
+> @dicebear/server@1.0.0 start
+> node dist/index.js
+
+Server running on port 3333
+Environment: development
+Base URL: http://localhost:3000
+[0mGET /editor/userId?token=authToken [32m200[0m 2.967 ms - 12062[0m
+[0mGET /editor/editor-bridge.js [32m200[0m 1.249 ms - 3965[0m
+[0mGET /api/avatar/default?style=bottts&backgroundColor=ffffff [32m200[0m 3.922 ms - 6630[0m
+[0mGET /favicon.ico [33m404[0m 1.482 ms - 150[0m

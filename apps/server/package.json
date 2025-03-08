@@ -1,0 +1,36 @@
+{
+  "name": "@dicebear/server",
+  "version": "1.0.0",
+  "description": "Express server for DiceBear with Avatars functionality",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
+    "test": "jest"
+  },
+  "dependencies": {
+    "@dicebear/collection": "^7.0.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "helmet": "^6.1.5",
+    "ioredis": "^5.3.2",
+    "morgan": "^1.10.0",
+    "nanoid": "^3.3.6",
+    "sharp": "^0.32.1",
+    "winston": "^3.8.2"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.13",
+    "@types/express": "^4.17.17",
+    "@types/jest": "^29.5.1",
+    "@types/morgan": "^1.9.4",
+    "@types/node": "^18.16.3",
+    "@types/sharp": "^0.31.1",
+    "jest": "^29.5.0",
+    "ts-jest": "^29.1.0",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.0.4"
+  }
+}

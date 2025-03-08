@@ -35,4 +35,14 @@ packages/@dicebear/*/thumbs
 # Development files
 apps/editor/dev.pid
 apps/editor/server.pid
+apps/server/server.pid
 node_modules
+
+# Logs and temporary files
+*.log
+editor.log
+server.log
+editor-build.log
+build.log
+dev.log
+*.timestamp-*
