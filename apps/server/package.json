@@ -10,7 +10,10 @@
     "test": "jest"
   },
   "dependencies": {
+    "@dicebear/adventurer": "^7.1.3",
+    "@dicebear/bottts": "^7.1.3",
     "@dicebear/collection": "^7.0.0",
+    "@dicebear/core": "^7.1.3",
     "cors": "^2.8.5",
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
