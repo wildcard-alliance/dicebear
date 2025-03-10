@@ -9,6 +9,7 @@
   // Get editor parameters from URL
   const urlParams = new URLSearchParams(window.location.search);
   const token = urlParams.get('token');
+  const returnUrl = urlParams.get('returnUrl');
   
   // Extract userId from path: /editor/:userId
   const pathParts = window.location.pathname.split('/');
@@ -87,6 +88,14 @@
         // Notify that preferences were saved
         window.dispatchEvent(new CustomEvent('dicebear:preferences-saved', { detail: data }));
         
+        // If a returnUrl was provided, redirect after saving
+        if (returnUrl) {
+          console.log('Redirecting to return URL after save...');
+          setTimeout(() => {
+            window.location.href = decodeURIComponent(returnUrl);
+          }, 500);
+        }
+        
         return data.success;
       } catch (error) {
         console.error('Error saving preferences:', error);
@@ -94,6 +103,33 @@
       }
     }
   };
+  
+  // Create return button
+  function createReturnButton() {
+    const returnDiv = document.createElement('div');
+    returnDiv.id = 'return-button';
+    returnDiv.style.position = 'fixed';
+    returnDiv.style.bottom = '10px';
+    returnDiv.style.left = '10px';
+    returnDiv.style.padding = '8px 12px';
+    returnDiv.style.backgroundColor = '#0066cc';
+    returnDiv.style.color = 'white';
+    returnDiv.style.borderRadius = '4px';
+    returnDiv.style.fontSize = '14px';
+    returnDiv.style.zIndex = '9999';
+    returnDiv.style.cursor = 'pointer';
+    returnDiv.textContent = 'Return to Test Page';
+    returnDiv.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2)';
+    
+    // Add click event to return
+    returnDiv.addEventListener('click', function() {
+      if (returnUrl) {
+        window.location.href = decodeURIComponent(returnUrl);
+      }
+    });
+    
+    return returnDiv;
+  }
   
   // Initialize when page loads
   document.addEventListener('DOMContentLoaded', function() {
@@ -120,6 +156,18 @@
       } else {
         window.addEventListener('load', () => {
           document.body.appendChild(statusDiv);
+        });
+      }
+    }
+    
+    // Add return button if we have a returnUrl
+    if (returnUrl && !document.getElementById('return-button')) {
+      const returnButton = createReturnButton();
+      if (document.body) {
+        document.body.appendChild(returnButton);
+      } else {
+        window.addEventListener('load', () => {
+          document.body.appendChild(returnButton);
         });
       }
     }

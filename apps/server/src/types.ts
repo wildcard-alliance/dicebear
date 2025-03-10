@@ -44,6 +44,9 @@ export interface AvatarGenerationOptions {
   
   /** The size in pixels (for raster formats) */
   size?: number;
+  
+  /** Seed value for deterministic generation */
+  seed?: string;
 }
 
 /**

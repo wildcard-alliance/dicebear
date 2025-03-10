@@ -52,6 +52,7 @@ app.get('/editor/*', (req, res) => {
       // Send the modified HTML
       res.setHeader('Content-Type', 'text/html');
       res.send(modifiedHtml);
+      console.log('Served editor HTML with bridge script injected');
     } catch (error) {
       console.error('Error injecting bridge script:', error);
       res.status(500).send('Error loading editor');

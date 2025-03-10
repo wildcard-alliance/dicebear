@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, watchEffect, onMounted } from 'vue';
+import { computed, watchEffect, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import Preview from './components/Preview.vue';
 import Options from './components/Options.vue';
@@ -7,15 +7,15 @@ import useMainStore from './stores/main';
 import tinycolor from 'tinycolor2';
 import Header from './components/Header.vue';
 import { useElementSize } from '@vueuse/core';
-import { ref } from 'vue';
-import { isServerMode } from './utils/serverAdapter';
+import { hasUserContext, loadFromServer, showNotification } from './utils/serverAdapter';
 
 const i18n = useI18n();
 const store = useMainStore();
 
 const header = ref<HTMLDivElement>();
 const preview = ref<HTMLDivElement>();
-const serverMode = ref(false);
+const userHasContext = ref(false);
+const isLoading = ref(false);
 
 const { height: headerHeight } = useElementSize(header);
 const { height: previewHeight } = useElementSize(preview);
@@ -30,13 +30,69 @@ const backgroundColor = computed(() =>
     .toHexString()
 );
 
-onMounted(() => {
-  // Check if we're in server mode
-  serverMode.value = isServerMode();
+/**
+ * Load avatar preferences from the server
+ */
+async function loadSavedPreferences() {
+  if (!userHasContext.value) {
+    console.log('No user context available, skipping preference loading');
+    return; // Not in authenticated mode
+  }
   
-  // Initialize editor bridge if needed
-  if (window.DICEBEAR_EDITOR || window.avatarBridge) {
-    console.log('Editor bridge initialized');
+  isLoading.value = true;
+  
+  try {
+    console.log('Loading saved preferences from server');
+    const result = await loadFromServer();
+    
+    if (result.success && result.data) {
+      // Apply the loaded preferences
+      store.selectedStyleName = result.data.style;
+      store.selectedStyleOptions = result.data.options;
+      
+      showNotification('Your saved avatar has been loaded', 'success');
+      console.log('Successfully loaded preferences:', result.data);
+    } else if (result.success) {
+      console.log('No saved preferences found for this user');
+    } else {
+      console.error('Error loading preferences:', result.message);
+    }
+  } catch (error) {
+    console.error('Failed to load saved preferences:', error);
+    // Don't show error to user, just silently fail
+  } finally {
+    isLoading.value = false;
+  }
+}
+
+
+/**
+ * Handle errors that might happen during initialization
+ */
+function handleInitializationError(error: unknown) {
+  console.error('Initialization error:', error);
+  showNotification(
+    'There was a problem initializing the editor. Some features may not be available.',
+    'error'
+  );
+}
+
+onMounted(async () => {
+  try {
+    // Check if we're in authenticated mode
+    userHasContext.value = hasUserContext();
+    console.log('User has context:', userHasContext.value);
+    
+    // Initialize editor bridge if needed
+    if (window.DICEBEAR_EDITOR || window.avatarBridge) {
+      console.log('Editor bridge initialized');
+    }
+    
+    // Load saved preferences if available
+    await loadSavedPreferences();
+    
+  } catch (error) {
+    handleInitializationError(error);
   }
 });
 

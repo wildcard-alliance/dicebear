@@ -6,12 +6,15 @@ import availableStyles from '@/config/styles';
 import getApiUrl from '@/utils/getApiUrl';
 import { computed, ref } from 'vue';
 import { useFullscreen } from '@vueuse/core';
+import SaveButton from './SaveButton.vue';
+import { hasUserContext } from '@/utils/serverAdapter';
 
 const { t } = useI18n();
 const store = useMainStore();
 const show = ref(false);
 const { isFullscreen, enter } = useFullscreen();
 
+const showSaveButton = ref(hasUserContext());
 const styleMeta = computed(
   () => availableStyles[store.selectedStyleName].style.meta
 );
@@ -94,12 +97,15 @@ function onFullscreen() {
         @click="onFullscreen"
       />
     </div>
-    <Button
-      rounded
-      severity="secondary"
-      :label="t('save')"
-      @click="onDownload"
-    />
+    <div class="header-save-area">
+      <Button
+        rounded
+        severity="secondary"
+        :label="t('download')"
+        @click="onDownload"
+      />
+      <SaveButton v-if="showSaveButton" />
+    </div>
   </div>
 </template>
 
@@ -108,10 +114,15 @@ function onFullscreen() {
   display: flex;
   justify-content: space-between;
   padding-top: 16px;
+  padding-bottom: 16px;
 
   &-actions {
     display: flex;
     gap: 8px;
+  }
+  
+  &-save-area {
+    display: flex;
   }
 
   &-dialog-text {

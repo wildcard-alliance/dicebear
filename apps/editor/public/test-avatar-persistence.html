@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DiceBear Avatar Persistence Test</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      line-height: 1.6;
+    }
+    
+    h1, h2, h3 {
+      color: #2c3e50;
+    }
+    
+    .container {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    
+    .card {
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .avatar-container {
+      display: flex;
+      gap: 20px;
+      margin: 20px 0;
+      flex-wrap: wrap;
+    }
+    
+    .avatar-box {
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 15px;
+      width: 200px;
+    }
+    
+    .avatar-image {
+      width: 128px;
+      height: 128px;
+      margin: 0 auto;
+      display: block;
+    }
+    
+    .button {
+      background-color: #3498db;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background-color 0.3s;
+    }
+    
+    .button:hover {
+      background-color: #2980b9;
+    }
+    
+    .button:disabled {
+      background-color: #95a5a6;
+      cursor: not-allowed;
+    }
+    
+    .success {
+      color: #27ae60;
+      font-weight: bold;
+    }
+    
+    .error {
+      color: #e74c3c;
+      font-weight: bold;
+    }
+    
+    pre {
+      background-color: #f8f8f8;
+      padding: 10px;
+      border-radius: 4px;
+      overflow-x: auto;
+    }
+    
+    .editor-frame {
+      width: 100%;
+      height: 600px;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>DiceBear Avatar Persistence Test</h1>
+  
+  <div class="container">
+    <div class="card">
+      <h2>Test Anonymous Mode</h2>
+      <p>Opens the editor with no user ID or token in the URL, which should trigger anonymous mode.</p>
+      <button class="button" id="testAnonymous">Open Anonymous Editor</button>
+      <p>Your anonymous ID: <span id="anonymousId">retrieving...</span></p>
+    </div>
+    
+    <div class="card">
+      <h2>Test Saved Avatar Retrieval</h2>
+      <p>Tests retrieving saved avatars from the server for anonymous users.</p>
+      <div class="avatar-container">
+        <div class="avatar-box">
+          <h3>Anonymous User</h3>
+          <div id="anonymousAvatar" class="avatar-image">Loading...</div>
+          <p>Using local storage ID</p>
+        </div>
+      </div>
+      <button class="button" id="testRetrieval">Retrieve Saved Avatar</button>
+      <div id="retrievalResult"></div>
+    </div>
+    
+    <div class="card">
+      <h2>Test Auth Token Generation</h2>
+      <p>Tests generating auth tokens for a user (requires API key).</p>
+      <div>
+        <label for="apiKey">API Key:</label>
+        <input type="text" id="apiKey" placeholder="Enter API key" value="test-api-key-1234">
+      </div>
+      <div>
+        <label for="userId">User ID:</label>
+        <input type="text" id="userId" placeholder="Enter user ID" value="test-user-123">
+      </div>
+      <button class="button" id="generateToken">Generate Token</button>
+      <div id="tokenResult"></div>
+    </div>
+    
+    <div class="card">
+      <h2>Embedded Editor</h2>
+      <p>The current page will embed the editor in an iframe below:</p>
+      <div id="editorContainer"></div>
+    </div>
+  </div>
+  
+  <script>
+    // Utility functions
+    function showMessage(elementId, message, isError = false) {
+      const element = document.getElementById(elementId);
+      element.innerHTML = message;
+      element.className = isError ? 'error' : 'success';
+    }
+    
+    function getApiBaseUrl() {
+      // Use the server's URL for API requests
+      return "http://localhost:3000";
+    }
+    
+    function getEditorBaseUrl() {
+      // Current location (Vite server) for editor pages
+      return window.location.origin;
+    }
+    
+    // Load anonymous ID from localStorage
+    document.addEventListener('DOMContentLoaded', () => {
+      const anonymousId = localStorage.getItem('dicebear-anonymous-user-id');
+      document.getElementById('anonymousId').textContent = anonymousId || 'Not set yet';
+      
+      // Handle anonymous editor test
+      document.getElementById('testAnonymous').addEventListener('click', () => {
+        const url = `${getEditorBaseUrl()}/`;
+        // Open in a new tab
+        window.open(url, '_blank');
+        
+        // Also load in the embedded iframe
+        loadEditorInIframe(url);
+      });
+      
+      // Handle avatar retrieval test
+      document.getElementById('testRetrieval').addEventListener('click', async () => {
+        const resultContainer = document.getElementById('retrievalResult');
+        resultContainer.innerHTML = 'Loading...';
+        
+        try {
+          const anonymousId = localStorage.getItem('dicebear-anonymous-user-id');
+          if (!anonymousId) {
+            showMessage('retrievalResult', 'No anonymous ID found in local storage. Visit the editor first.', true);
+            return;
+          }
+          
+          // Fetch the avatar from the API SERVER (not the editor)
+          const response = await fetch(`${getApiBaseUrl()}/api/avatar/${anonymousId}?size=128`);
+          
+          if (response.ok) {
+            const blob = await response.blob();
+            const imageUrl = URL.createObjectURL(blob);
+            
+            // Display the avatar
+            const anonymousAvatar = document.getElementById('anonymousAvatar');
+            anonymousAvatar.innerHTML = '';
+            const img = document.createElement('img');
+            img.src = imageUrl;
+            img.alt = 'Anonymous Avatar';
+            img.width = 128;
+            img.height = 128;
+            anonymousAvatar.appendChild(img);
+            
+            showMessage('retrievalResult', 'Avatar successfully retrieved');
+          } else {
+            showMessage('retrievalResult', `Error retrieving avatar: ${response.status}`, true);
+          }
+        } catch (error) {
+          showMessage('retrievalResult', `Error: ${error.message}`, true);
+        }
+      });
+      
+      // Handle token generation test
+      document.getElementById('generateToken').addEventListener('click', async () => {
+        const apiKey = document.getElementById('apiKey').value;
+        const userId = document.getElementById('userId').value;
+        const resultContainer = document.getElementById('tokenResult');
+        
+        if (!apiKey || !userId) {
+          showMessage('tokenResult', 'API Key and User ID are required', true);
+          return;
+        }
+        
+        resultContainer.innerHTML = 'Generating token...';
+        
+        try {
+          // Make API request to the server component
+          const response = await fetch(`${getApiBaseUrl()}/api/auth/token`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-API-Key': apiKey
+            },
+            body: JSON.stringify({ userId })
+          });
+          
+          const data = await response.json();
+          
+          if (response.ok) {
+            // Format the result as JSON
+            resultContainer.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+            
+            // Add a button to open the editor with this token
+            const openButton = document.createElement('button');
+            openButton.className = 'button';
+            openButton.textContent = 'Open Editor with Token';
+            openButton.addEventListener('click', () => {
+              // Edit the URL to use the current editor location instead of the
+              // server-generated URL which might be wrong
+              const userId = data.editUrl.split('/').pop().split('?')[0];
+              const token = new URL(data.editUrl).searchParams.get('token');
+              const url = `${getEditorBaseUrl()}/${userId}?token=${token}`;
+              
+              window.open(url, '_blank');
+              loadEditorInIframe(url);
+            });
+            resultContainer.appendChild(openButton);
+          } else {
+            showMessage('tokenResult', `Error: ${data.error || 'Unknown error'}`, true);
+          }
+        } catch (error) {
+          showMessage('tokenResult', `Error: ${error.message}`, true);
+        }
+      });
+    });
+    
+    function loadEditorInIframe(url) {
+      const container = document.getElementById('editorContainer');
+      container.innerHTML = '';
+      
+      const iframe = document.createElement('iframe');
+      iframe.src = url;
+      iframe.className = 'editor-frame';
+      iframe.allow = 'fullscreen';
+      
+      container.appendChild(iframe);
+    }
+  </script>
+</body>
+</html>
