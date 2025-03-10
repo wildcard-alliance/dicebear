@@ -3,22 +3,6 @@
 ## Overview
 This package is a fork of the open source Dicebear package. This project combines the DiceBear avatar library with server-side avatar management capabilities, providing a full-featured avatar generation and customization solution.
 
-## Running Tools
-You can run any monorepo tool from within this package directory using npm:
-
-```bash
-# Run a tool from the dicebear package directory
-npm run tool -- <tool-name> [arguments]
-
-# Examples:
-npm run tool -- query vercel "What is Edge Config?"
-npm run tool -- browser-use "Look up avatar generation examples"
-npm run tool -- perplexity "Latest DiceBear versions"
-```
-
-The tool system automatically detects that you're in the dicebear package and ensures proper context is preserved. This is the same syntax used at the monorepo root.
-
-
 ### What is Dicebear?
 This is copied from the DiceBear README:
 
@@ -290,3 +274,18 @@ The editor is compiled to static files and served by the Express server, creatin
 - API key protection for admin endpoints
 - One-time use tokens with expiration
 - Proper validation of all inputs
+
+## Running Tools
+You can run any monorepo tool from within this package directory using npm:
+
+```bash
+# Run a tool from the dicebear package directory
+npm run tool -- <tool-name> [arguments]
+
+# Examples:
+npm run tool -- query vercel "What is Edge Config?"
+npm run tool -- browser-use "Look up avatar generation examples"
+npm run tool -- perplexity "Latest DiceBear versions"
+```
+
+The tool system automatically detects that you're in the dicebear package and ensures proper context is preserved. This is the same syntax used at the monorepo root.
