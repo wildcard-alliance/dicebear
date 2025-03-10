@@ -1,7 +1,7 @@
-# Dicebear (Forked) Package
+# `/packages/dicebear/CLAUDE.md` - AI Agent Context & Instructions
 
 ## Overview
-This package is a fork of the open source Dicebear package. This project combines the DiceBear avatar library with server-side avatar management capabilities, providing a full-featured avatar generation and customization solution.
+This package is a fork of the open source Dicebear package. This project extends the DiceBear avatar library with server-side avatar management capabilities, providing a full-featured avatar generation and customization solution.
 
 ### What is Dicebear?
 This is copied from the DiceBear README:
@@ -287,5 +287,3 @@ npm run tool -- query vercel "What is Edge Config?"
 npm run tool -- browser-use "Look up avatar generation examples"
 npm run tool -- perplexity "Latest DiceBear versions"
 ```
-
-The tool system automatically detects that you're in the dicebear package and ensures proper context is preserved. This is the same syntax used at the monorepo root.
