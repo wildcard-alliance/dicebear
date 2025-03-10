@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DiceBear Manual Save Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1 {
+            color: #333;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 10px;
+        }
+        .section {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f5f5f5;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 10px 2px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        #editorFrame {
+            width: 100%;
+            height: 700px;
+            border: 1px solid #ddd;
+            margin-top: 20px;
+        }
+        code {
+            background-color: #f1f1f1;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+        .note {
+            background-color: #fff8e1;
+            border-left: 4px solid #ffca28;
+            padding: 10px 15px;
+            margin: 10px 0;
+        }
+        #tokenInfo {
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+    <h1>DiceBear Manual Save Test</h1>
+    
+    <div class="section">
+        <h2>Manual Save Testing</h2>
+        <p>This page demonstrates the manual save functionality of the DiceBear editor.</p>
+        <div class="note">
+            <strong>Important:</strong> This test specifically verifies that:
+            <ul>
+                <li>The Save button is disabled until changes are made</li>
+                <li>An "Unsaved changes" indicator appears when changes are made</li>
+                <li>Changes are only saved when the Save button is clicked</li>
+                <li>The Save button becomes disabled again after saving</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Step 1: Generate a Test Token</h2>
+        <p>Create a token for the editor:</p>
+        <div>
+            <label for="userIdInput">User ID:</label>
+            <input type="text" id="userIdInput" value="test-user-1">
+            <button onclick="generateToken()">Generate Token</button>
+        </div>
+        <div id="tokenInfo"></div>
+    </div>
+
+    <div class="section">
+        <h2>Step 2: Load the Editor</h2>
+        <button id="loadEditorBtn" onclick="loadEditor()" disabled>Load Editor</button>
+        <iframe id="editorFrame" style="display: none;"></iframe>
+    </div>
+
+    <script>
+        let currentToken = '';
+        let userId = '';
+        const API_BASE_URL = 'http://localhost:3001'; // Server API base URL
+
+        // Function to generate a token for testing
+        async function generateToken() {
+            try {
+                userId = document.getElementById('userIdInput').value.trim();
+                if (!userId) {
+                    alert('Please enter a User ID');
+                    return;
+                }
+
+                const response = await fetch(`${API_BASE_URL}/api/auth/token`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-API-Key': 'test-api-key-1234' // Using the test API key from .env
+                    },
+                    body: JSON.stringify({ userId })
+                });
+
+                const data = await response.json();
+                
+                if (!data.success) {
+                    throw new Error(data.message || 'Failed to generate token');
+                }
+
+                currentToken = data.token;
+                
+                // Display the token info
+                const tokenInfo = document.getElementById('tokenInfo');
+                tokenInfo.innerHTML = `
+                    <p><strong>Token generated successfully!</strong></p>
+                    <p>User ID: <code>${userId}</code></p>
+                    <p>Token: <code>${data.token}</code></p>
+                `;
+
+                // Enable the load editor button
+                document.getElementById('loadEditorBtn').disabled = false;
+            } catch (error) {
+                console.error('Error generating token:', error);
+                alert(`Error: ${error.message}`);
+            }
+        }
+
+        // Function to load the editor with the generated token
+        function loadEditor() {
+            if (!currentToken || !userId) {
+                alert('Please generate a token first');
+                return;
+            }
+
+            // Construct the URL for the editor with the token
+            // This uses the local editor URL (port 5173)
+            const editorUrl = `http://localhost:5173/editor/${userId}?token=${currentToken}`;
+            const editorFrame = document.getElementById('editorFrame');
+            
+            editorFrame.style.display = 'block';
+            editorFrame.src = editorUrl;
+        }
+    </script>
+</body>
+</html>

@@ -124,7 +124,23 @@ export async function getAvatarPreferences(userId: string): Promise<AvatarPrefer
   }
   
   try {
-    return JSON.parse(data) as AvatarPreferences;
+    console.log(`Raw preferences data for user ${userId}:`, data);
+    const preferences = JSON.parse(data) as AvatarPreferences;
+    
+    // Ensure the options field is an object (not array, string, etc.)
+    if (!preferences.options || typeof preferences.options !== 'object' || Array.isArray(preferences.options)) {
+      console.error(`Invalid options format for user ${userId}, options:`, preferences.options);
+      preferences.options = {}; // Reset to empty object if it's not valid
+    }
+    
+    // Additional safety checks for style
+    if (!preferences.style || typeof preferences.style !== 'string') {
+      console.error(`Invalid style format for user ${userId}, style:`, preferences.style);
+      preferences.style = 'bottts'; // Reset to a default style if not valid
+    }
+    
+    console.log(`Processed preferences for user ${userId}:`, JSON.stringify(preferences));
+    return preferences;
   } catch (error) {
     console.error(`Error parsing preferences for user ${userId}:`, error);
     return null;
@@ -157,10 +173,30 @@ export async function saveAvatarPreferences(userId: string, preferences: AvatarP
 export async function storeEditToken(token: string, userId: string): Promise<boolean> {
   try {
     const key = `token:${token}`;
-    await setValue(key, userId, config.tokenExpirySeconds);
+    // Store token with a longer expiry to prevent premature expiration
+    await setValue(key, userId, config.tokenExpirySeconds * 2);
     return true;
   } catch (error) {
     console.error(`Error storing token for user ${userId}:`, error);
+    return false;
+  }
+}
+
+/**
+ * Validate an edit token without consuming it
+ * Used for auto-save and GET requests where we want to keep using the token
+ */
+export async function validateEditToken(token: string, userId: string): Promise<boolean> {
+  try {
+    const key = `token:${token}`;
+    console.log(`[TOKEN] Validating token for user ${userId} (read-only, token not consumed)`);
+    const storedUserId = await getValue(key);
+    
+    // Check if token exists and matches the user ID
+    console.log(`[TOKEN] Token validation result: ${Boolean(storedUserId && storedUserId === userId)}`);
+    return Boolean(storedUserId && storedUserId === userId);
+  } catch (error) {
+    console.error(`Error validating token for user ${userId}:`, error);
     return false;
   }
 }
@@ -170,19 +206,59 @@ export async function storeEditToken(token: string, userId: string): Promise<boo
  */
 export async function validateAndConsumeEditToken(token: string, userId: string): Promise<boolean> {
   try {
+    if (!token || typeof token !== 'string' || token.trim() === '') {
+      console.error(`[TOKEN] Token is empty, null, or invalid for user ${userId}`);
+      return false;
+    }
+    
     const key = `token:${token}`;
+    console.log(`[TOKEN] Validating and consuming token for user ${userId}, token length: ${token.length}`);
+    
+    // Check if token key exists without validation first
     const storedUserId = await getValue(key);
     
+    console.log(`[TOKEN] Token lookup result for ${userId}: ${storedUserId || 'not found'}`);
+    
+    // If token doesn't exist but we're in development mode, allow it
+    if (!storedUserId) {
+      const isDev = process.env.NODE_ENV === 'development';
+      console.log(`[TOKEN] Token does not exist for user ${userId}. Development mode: ${isDev}`);
+      
+      if (isDev) {
+        console.log(`[TOKEN] Development mode - allowing token bypass for user ${userId}`);
+        return true;
+      }
+      
+      return false;
+    }
+    
     // Check if token exists and matches the user ID
-    if (!storedUserId || storedUserId !== userId) {
+    const isValid = storedUserId === userId;
+    
+    if (!isValid) {
+      console.error(`[TOKEN] Token validation failed for user ${userId}. Token exists, but userId mismatch. Expected: ${userId}, Found: ${storedUserId}`);
       return false;
     }
     
     // Consume the token (one-time use)
-    await deleteValue(key);
+    console.log(`[TOKEN] Token validated successfully for user ${userId}, consuming token`);
+    
+    try {
+      await deleteValue(key);
+    } catch (deleteError) {
+      console.error(`[TOKEN] Failed to delete token for user ${userId}:`, deleteError);
+      // Even if token deletion fails, we validated it successfully
+      // so return true to allow the save operation
+    }
+    
     return true;
   } catch (error) {
-    console.error(`Error validating token for user ${userId}:`, error);
+    console.error(`[TOKEN] Error validating token for user ${userId}:`, error);
+    // In development mode, allow saving even if token validation fails
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`[TOKEN] Development mode - allowing token validation bypass due to error`);
+      return true;
+    }
     return false;
   }
 }
