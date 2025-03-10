@@ -36,7 +36,13 @@ packages/@dicebear/*/thumbs
 apps/editor/dev.pid
 apps/editor/server.pid
 apps/server/server.pid
+editor.pid
+server.pid
 node_modules
+
+# Build artifacts
+apps/server/dist
+*.tsbuildinfo
 
 # Logs and temporary files
 *.log
@@ -46,3 +52,4 @@ editor-build.log
 build.log
 dev.log
 *.timestamp-*
+package-lock.json
