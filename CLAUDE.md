@@ -284,6 +284,6 @@ npm run tool -- <tool-name> [arguments]
 
 # Examples:
 npm run tool -- query vercel "What is Edge Config?"
-npm run tool -- browser-use "Look up avatar generation examples"
+npm run tool -- chat "Look up avatar generation examples"
 npm run tool -- perplexity "Latest DiceBear versions"
 ```
